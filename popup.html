@@ -5,39 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dissent</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
     :root {
-      --neon: #E1FF00;
-      --red: #E1FF00;
-      --amber: #ffffff;
-      --yellow: #888888;
-      --green: #E1FF00;
-      --bg: #000000;
-      --bg2: #000000;
-      --bg3: #1a1a1a;
-      --border: #333333;
-      --text: #ffffff;
-      --muted: #888888;
+      --neon:   #E1FF00;
+      --bg:     #000000;
+      --bg2:    #0a0a0a;
+      --bg3:    #111111;
+      --bg4:    #161616;
+      --border: #222222;
+      --border2:#2e2e2e;
+      --text:   #ffffff;
+      --muted:  #666666;
+      --dim:    #333333;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      width: 340px;
+      width: 380px;
       background: var(--bg);
       color: var(--text);
       font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      line-height: 1.5;
+      font-size: 11px;
+      line-height: 1.6;
       overflow: hidden;
     }
 
-    /* ── HEADER ── */
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 3px; }
+
+    /* ══════════════════════════════════════
+       HEADER
+    ══════════════════════════════════════ */
     .header {
-      background: var(--bg2);
-      border-bottom: 2px solid #ffffff;
-      padding: 14px 16px 12px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px 14px;
     }
     .header-row {
       display: flex;
@@ -47,239 +53,315 @@
     .logo {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
     }
-    .logo-icon {
-      width: 28px;
-      height: 28px;
-      background: var(--red);
-      border-radius: 0px;
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      background: var(--neon);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      flex-shrink: 0;
     }
-    .logo-text {
-      font-size: 13px;
+    .logo-mark svg {
+      width: 18px;
+      height: 18px;
+    }
+    .logo-name {
+      font-size: 15px;
       font-weight: 700;
-      color: #fff;
-      letter-spacing: -0.02em;
+      color: var(--neon);
+      letter-spacing: 0.08em;
     }
-    .logo-sub {
+    .logo-tagline {
       font-size: 9px;
       color: var(--muted);
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      margin-top: 1px;
+      margin-top: 2px;
     }
-    .toggle-wrap {
+
+    /* main power toggle */
+    .power-wrap {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 4px;
     }
-    .toggle-label {
-      font-size: 10px;
+    .power-label {
+      font-size: 8px;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
     }
     .toggle {
       position: relative;
-      width: 36px;
-      height: 20px;
+      width: 42px;
+      height: 22px;
     }
     .toggle input { display: none; }
     .toggle-slider {
       position: absolute;
       inset: 0;
-      background: #222;
-      border-radius: 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 11px;
       cursor: pointer;
-      transition: background 0.2s;
-      border: 1px solid #333;
+      transition: border-color 0.2s;
     }
     .toggle-slider::before {
       content: '';
       position: absolute;
-      width: 14px;
-      height: 14px;
+      width: 16px;
+      height: 16px;
       left: 2px;
       top: 2px;
-      background: var(--muted);
+      background: var(--dim);
       border-radius: 50%;
       transition: transform 0.2s, background 0.2s;
     }
-    .toggle input:checked + .toggle-slider { background: #1a1a1a; border-color: var(--green); }
-    .toggle input:checked + .toggle-slider::before { transform: translateX(16px); background: var(--green); }
+    .toggle input:checked + .toggle-slider { border-color: var(--neon); }
+    .toggle input:checked + .toggle-slider::before {
+      transform: translateX(20px);
+      background: var(--neon);
+    }
 
-    /* ── STATUS BAR ── */
+    /* ══════════════════════════════════════
+       STATUS BAR
+    ══════════════════════════════════════ */
     .status-bar {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      background: var(--bg);
+      gap: 8px;
+      padding: 9px 20px;
+      background: var(--bg2);
       border-bottom: 1px solid var(--border);
     }
     .status-dot {
-      width: 6px;
-      height: 6px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
-      background: var(--green);
-      animation: pulse 2s infinite;
+      background: var(--neon);
+      flex-shrink: 0;
+      animation: pulse 2.4s ease-in-out infinite;
     }
-    .status-dot.offline { background: var(--muted); animation: none; }
+    .status-dot.offline { background: var(--dim); animation: none; }
     @keyframes pulse {
-      0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(225,255,0,0.4); }
+      50%       { opacity: 0.7; box-shadow: 0 0 0 4px rgba(225,255,0,0); }
     }
-    .status-text { font-size: 10px; color: var(--muted); letter-spacing: 0.04em; }
-    .status-platform { color: var(--green); font-weight: 500; }
+    .status-text { font-size: 10px; color: var(--muted); }
+    .status-platform { color: var(--neon); font-weight: 600; }
 
-    /* ── STATS ── */
+    /* ══════════════════════════════════════
+       STATS
+    ══════════════════════════════════════ */
     .stats {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 1px;
       background: var(--border);
+      gap: 1px;
       border-bottom: 1px solid var(--border);
     }
     .stat {
       background: var(--bg2);
-      padding: 12px 10px;
+      padding: 14px 10px 12px;
       text-align: center;
     }
     .stat-val {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: 700;
-      color: #fff;
-      letter-spacing: -0.02em;
+      color: var(--neon);
+      letter-spacing: -0.03em;
+      line-height: 1;
     }
-    .stat-val.red { color: var(--red); }
-    .stat-val.amber { color: var(--amber); }
-    .stat-val.green { color: var(--green); }
+    .stat-val.dim { color: var(--text); }
     .stat-label {
-      font-size: 9px;
+      font-size: 8px;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-top: 2px;
+      letter-spacing: 0.1em;
+      margin-top: 5px;
     }
 
-    /* ── SECTIONS ── */
-    .section {
-      padding: 14px 16px;
+    /* ══════════════════════════════════════
+       TAB BAR
+    ══════════════════════════════════════ */
+    .tab-bar {
+      display: flex;
+      background: var(--bg2);
       border-bottom: 1px solid var(--border);
     }
-    .section-title {
+    .tab {
+      flex: 1;
+      padding: 10px 8px;
+      text-align: center;
       font-size: 9px;
-      font-weight: 700;
-      color: var(--muted);
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-bottom: 10px;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      user-select: none;
+    }
+    .tab.active {
+      color: var(--neon);
+      border-bottom-color: var(--neon);
+    }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .scroll-area {
+      max-height: 348px;
+      overflow-y: auto;
     }
 
-    /* ── PROMPT SELECTOR ── */
+    /* ══════════════════════════════════════
+       SECTIONS
+    ══════════════════════════════════════ */
+    .section {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section:last-child { border-bottom: none; }
+
+    .section-title {
+      font-size: 8px;
+      font-weight: 700;
+      color: var(--neon);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ══════════════════════════════════════
+       PROMPT CARDS
+    ══════════════════════════════════════ */
     .prompt-grid {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      margin-bottom: 10px;
+      gap: 8px;
+      margin-bottom: 14px;
     }
     .prompt-card {
       background: var(--bg3);
       border: 1px solid var(--border);
-      border-radius: 0px;
-      padding: 8px 10px;
+      padding: 10px 12px;
       cursor: pointer;
       transition: border-color 0.15s, background 0.15s;
       display: flex;
       align-items: flex-start;
-      gap: 8px;
+      gap: 10px;
     }
-    .prompt-card:hover { border-color: #444; background: #1e1e1e; }
-    .prompt-card.selected { border-color: #ffffff; border-width: 2px; background: #111111; }
+    .prompt-card:hover { border-color: var(--border2); background: var(--bg4); }
+    .prompt-card.selected { border-color: var(--neon); background: #0d0d00; }
+
     .prompt-badge {
-      font-size: 9px;
-      padding: 2px 6px;
-      border-radius: 0px;
+      font-size: 8px;
+      padding: 2px 7px;
       font-weight: 700;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       flex-shrink: 0;
-      margin-top: 1px;
+      margin-top: 2px;
     }
-    .badge-nuclear { background: var(--red); color: #000; }
-    .badge-moderate { background: var(--amber); color: #000; }
-    .badge-mild { background: var(--yellow); color: #000; }
-    .prompt-preview { font-size: 10px; color: #888; line-height: 1.4; }
+    .badge-nuclear  { background: var(--neon); color: #000; }
+    .badge-moderate { background: #fff; color: #000; }
+    .badge-mild     { background: var(--dim); color: var(--text); }
 
-    /* ── CUSTOM PROMPT ── */
-    .custom-area {
-      position: relative;
+    .prompt-preview {
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.5;
     }
+    .prompt-card.selected .prompt-preview { color: #bbb; }
+
+    /* ══════════════════════════════════════
+       CUSTOM PROMPT
+    ══════════════════════════════════════ */
+    .custom-area { position: relative; }
     .custom-input {
       width: 100%;
       background: var(--bg3);
       border: 1px solid var(--border);
-      border-radius: 0px;
       color: var(--text);
       font-family: inherit;
       font-size: 11px;
-      line-height: 1.5;
-      padding: 10px;
+      line-height: 1.6;
+      padding: 12px;
       resize: none;
-      height: 72px;
+      height: 80px;
       transition: border-color 0.2s;
       outline: none;
+      border-radius: 0;
     }
-    .custom-input:focus { border-color: #ffffff; border-width: 2px; outline: none; }
-    .custom-input::placeholder { color: var(--muted); }
+    .custom-input:focus { border-color: var(--neon); }
+    .custom-input::placeholder { color: var(--dim); }
     .char-count {
       position: absolute;
-      bottom: 8px;
-      right: 8px;
+      bottom: 10px;
+      right: 10px;
       font-size: 9px;
-      color: var(--muted);
+      color: var(--dim);
     }
 
-    /* ── BUTTONS ── */
+    /* ══════════════════════════════════════
+       BUTTONS
+    ══════════════════════════════════════ */
     .btn-row {
       display: flex;
       gap: 8px;
-      margin-top: 10px;
+      margin-top: 12px;
     }
     .btn {
       flex: 1;
-      padding: 9px;
-      border-radius: 0px;
+      padding: 10px;
       font-family: inherit;
       font-size: 10px;
       font-weight: 700;
       cursor: pointer;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       border: none;
       transition: opacity 0.15s, transform 0.1s;
+      border-radius: 0;
     }
     .btn:hover { opacity: 0.88; }
     .btn:active { transform: scale(0.97); }
-    .btn-primary { background: var(--neon); color: #000; }
-    .btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+    .btn-primary   { background: var(--neon); color: #000; }
+    .btn-secondary { background: var(--bg3); color: var(--muted); border: 1px solid var(--border); }
+    .btn-danger    { background: transparent; color: var(--muted); border: 1px solid var(--border); width: 100%; }
+    .btn-danger:hover { border-color: #ff4444; color: #ff4444; opacity: 1; }
 
-    /* ── THRESHOLD SLIDER ── */
+    /* ══════════════════════════════════════
+       SLIDER
+    ══════════════════════════════════════ */
     .slider-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 14px;
     }
     .slider-wrap { flex: 1; }
     input[type="range"] {
       -webkit-appearance: none;
       width: 100%;
-      height: 3px;
-      background: linear-gradient(to right, var(--red) 0%, var(--red) var(--val, 50%), #333 var(--val, 50%), #333 100%);
-      border-radius: 3px;
+      height: 2px;
+      background: linear-gradient(to right, var(--neon) 0%, var(--neon) var(--val, 40%), var(--border2) var(--val, 40%), var(--border2) 100%);
+      border-radius: 2px;
       outline: none;
       cursor: pointer;
     }
@@ -288,99 +370,144 @@
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      background: var(--red);
+      background: var(--neon);
       cursor: pointer;
+      border: 2px solid #000;
     }
     .slider-val {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 700;
-      color: var(--red);
-      width: 20px;
+      color: var(--neon);
+      width: 18px;
       text-align: right;
+      flex-shrink: 0;
     }
-    .slider-desc { font-size: 10px; color: var(--muted); margin-top: 6px; }
+    .slider-desc {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.5;
+    }
 
-    /* ── PATTERN TOGGLES ── */
-    .pattern-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+    /* ══════════════════════════════════════
+       PATTERN ROWS / TOGGLES
+    ══════════════════════════════════════ */
+    .pattern-list { display: flex; flex-direction: column; gap: 10px; }
+
     .pattern-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 12px;
     }
-    .pattern-name { font-size: 10px; color: #aaa; }
-    .pattern-weight { font-size: 9px; color: var(--muted); }
+    .pattern-info { flex: 1; min-width: 0; }
+    .pattern-name {
+      font-size: 10px;
+      color: #bbb;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pattern-desc {
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+    .pattern-weight { font-size: 9px; color: var(--dim); flex-shrink: 0; }
+
     .mini-toggle {
       position: relative;
-      width: 28px;
-      height: 16px;
+      width: 32px;
+      height: 18px;
+      flex-shrink: 0;
     }
     .mini-toggle input { display: none; }
     .mini-slider {
       position: absolute;
       inset: 0;
-      background: #222;
-      border-radius: 8px;
+      background: var(--bg3);
+      border-radius: 9px;
       cursor: pointer;
-      border: 1px solid #333;
-      transition: background 0.2s;
+      border: 1px solid var(--border2);
+      transition: border-color 0.2s;
     }
     .mini-slider::before {
       content: '';
       position: absolute;
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
       left: 2px;
       top: 2px;
-      background: var(--muted);
+      background: var(--dim);
       border-radius: 50%;
       transition: transform 0.2s, background 0.2s;
     }
-    .mini-toggle input:checked + .mini-slider { border-color: var(--green); }
-    .mini-toggle input:checked + .mini-slider::before { transform: translateX(12px); background: var(--green); }
+    .mini-toggle input:checked + .mini-slider { border-color: var(--neon); }
+    .mini-toggle input:checked + .mini-slider::before {
+      transform: translateX(14px);
+      background: var(--neon);
+    }
 
-    /* ── FOOTER ── */
+    /* ══════════════════════════════════════
+       TRACKER STATS
+    ══════════════════════════════════════ */
+    .tracker-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      margin-bottom: 12px;
+    }
+    .tracker-cell {
+      background: var(--bg3);
+      padding: 10px 12px;
+    }
+    .tracker-val {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--neon);
+    }
+    .tracker-label {
+      font-size: 8px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 2px;
+    }
+
+    /* ══════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════ */
     .footer {
-      padding: 10px 16px;
+      padding: 10px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-    }
-    .footer-text { font-size: 9px; color: #2a2a2a; letter-spacing: 0.04em; }
-    .footer-link { font-size: 9px; color: #333; cursor: pointer; text-decoration: none; }
-    .footer-link:hover { color: #666; }
-
-    /* ── TABS ── */
-    .tab-bar {
-      display: flex;
+      border-top: 1px solid var(--border);
       background: var(--bg2);
-      border-bottom: 1px solid var(--border);
     }
-    .tab {
-      flex: 1;
-      padding: 8px;
-      text-align: center;
+    .footer-text { font-size: 9px; color: var(--dim); letter-spacing: 0.04em; }
+    .footer-link {
       font-size: 9px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
+      color: var(--dim);
       cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: color 0.15s, border-color 0.15s;
+      text-decoration: none;
+      transition: color 0.15s;
     }
-    .tab.active { color: var(--neon); border-bottom-color: var(--neon); border-bottom-width: 3px; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+    .footer-link:hover { color: var(--neon); }
 
-    /* Scrollable content */
-    .scroll-area { max-height: 320px; overflow-y: auto; }
-    .scroll-area::-webkit-scrollbar { width: 4px; }
-    .scroll-area::-webkit-scrollbar-track { background: transparent; }
-    .scroll-area::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
+    /* ══════════════════════════════════════
+       SUBSECTION LABEL
+    ══════════════════════════════════════ */
+    .sub-label {
+      font-size: 8px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+      margin-top: 14px;
+    }
   </style>
 </head>
 <body>
@@ -389,14 +516,22 @@
   <div class="header">
     <div class="header-row">
       <div class="logo">
-        <div class="logo-icon">🔍</div>
+        <div class="logo-mark">
+          <!-- Eye / audit icon in black on neon yellow -->
+          <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="9" cy="8.5" rx="7" ry="4.5" stroke="#000" stroke-width="1.6"/>
+            <circle cx="9" cy="8.5" r="2.2" fill="#000"/>
+            <line x1="3" y1="13.5" x2="15" y2="13.5" stroke="#000" stroke-width="1.4"/>
+            <line x1="3" y1="15.5" x2="11" y2="15.5" stroke="#000" stroke-width="1" stroke-dasharray="1 1.5"/>
+          </svg>
+        </div>
         <div>
-          <div class="logo-text">DISSENT</div>
-          <div class="logo-sub">AI Behavioral Auditing</div>
+          <div class="logo-name">DISSENT</div>
+          <div class="logo-tagline">AI Behavioral Auditing</div>
         </div>
       </div>
-      <div class="toggle-wrap">
-        <span class="toggle-label">Active</span>
+      <div class="power-wrap">
+        <span class="power-label">Active</span>
         <label class="toggle">
           <input type="checkbox" id="main-toggle" checked />
           <span class="toggle-slider"></span>
@@ -405,7 +540,7 @@
     </div>
   </div>
 
-  <!-- STATUS -->
+  <!-- STATUS BAR -->
   <div class="status-bar">
     <div class="status-dot" id="status-dot"></div>
     <span class="status-text">Monitoring <span class="status-platform" id="platform-name">—</span></span>
@@ -414,15 +549,15 @@
   <!-- STATS -->
   <div class="stats">
     <div class="stat">
-      <div class="stat-val red" id="stat-total">0</div>
+      <div class="stat-val" id="stat-total">0</div>
       <div class="stat-label">Detected</div>
     </div>
     <div class="stat">
-      <div class="stat-val amber" id="stat-session">0</div>
+      <div class="stat-val dim" id="stat-session">0</div>
       <div class="stat-label">Session</div>
     </div>
     <div class="stat">
-      <div class="stat-val green" id="stat-injected">0</div>
+      <div class="stat-val dim" id="stat-injected">0</div>
       <div class="stat-label">Injected</div>
     </div>
   </div>
@@ -437,7 +572,7 @@
   <!-- TAB: INJECT -->
   <div class="tab-content active scroll-area" id="tab-inject">
     <div class="section">
-      <div class="section-title">Quick Fire Prompts</div>
+      <div class="section-title">Quick Fire</div>
       <div class="prompt-grid" id="prompt-grid">
         <!-- Populated by JS -->
       </div>
@@ -446,11 +581,11 @@
     <div class="section">
       <div class="section-title">Custom Counter-Prompt</div>
       <div class="custom-area">
-        <textarea class="custom-input" id="custom-prompt" placeholder="Type a custom prompt to inject into the chat..." maxlength="500"></textarea>
+        <textarea class="custom-input" id="custom-prompt" placeholder="Type a custom prompt to inject into the conversation..." maxlength="500"></textarea>
         <span class="char-count"><span id="char-count">0</span>/500</span>
       </div>
       <div class="btn-row">
-        <button class="btn btn-primary" id="inject-btn">⚡ Inject Selected</button>
+        <button class="btn btn-primary" id="inject-btn">⚡ Inject</button>
         <button class="btn btn-secondary" id="clear-btn">Clear</button>
       </div>
     </div>
@@ -458,6 +593,7 @@
 
   <!-- TAB: SETTINGS -->
   <div class="tab-content scroll-area" id="tab-settings">
+
     <div class="section">
       <div class="section-title">Detection Sensitivity</div>
       <div class="slider-row">
@@ -473,107 +609,116 @@
       <div class="section-title">Behaviour</div>
       <div class="pattern-list">
         <div class="pattern-row">
-          <span class="pattern-name">Auto-show alert banner</span>
+          <div class="pattern-info">
+            <div class="pattern-name">Auto-show explainability card</div>
+          </div>
           <label class="mini-toggle"><input type="checkbox" id="opt-banner" checked /><span class="mini-slider"></span></label>
         </div>
         <div class="pattern-row">
-          <span class="pattern-name">Sound alert on detection</span>
+          <div class="pattern-info">
+            <div class="pattern-name">Sound alert on detection</div>
+          </div>
           <label class="mini-toggle"><input type="checkbox" id="opt-sound" /><span class="mini-slider"></span></label>
         </div>
         <div class="pattern-row">
-          <span class="pattern-name">Scan all platforms</span>
+          <div class="pattern-info">
+            <div class="pattern-name">Scan all platforms</div>
+          </div>
           <label class="mini-toggle"><input type="checkbox" id="opt-all-platforms" checked /><span class="mini-slider"></span></label>
         </div>
         <div class="pattern-row">
-          <span class="pattern-name">Auto-inject (no confirmation)</span>
+          <div class="pattern-info">
+            <div class="pattern-name">Auto-inject (no confirmation)</div>
+          </div>
           <label class="mini-toggle"><input type="checkbox" id="opt-auto-inject" /><span class="mini-slider"></span></label>
         </div>
       </div>
     </div>
 
     <div class="section">
-      <div class="section-title">Input Scanner (L2)</div>
+      <div class="section-title">Input Scanner — L2</div>
       <div class="pattern-list">
         <div class="pattern-row">
-          <span class="pattern-name">Intercept before send</span>
+          <div class="pattern-info">
+            <div class="pattern-name">Intercept before send</div>
+            <div class="pattern-desc">Offers question-form rewrite for belief assertions (AISI 2026: −24pp sycophancy)</div>
+          </div>
           <label class="mini-toggle"><input type="checkbox" id="opt-epistemic" checked /><span class="mini-slider"></span></label>
         </div>
-        <div class="pattern-row">
-          <span class="pattern-name" style="font-size:9px;color:#666">Scans your input for belief assertions and offers a question-form rewrite (AISI 2026: −24pp sycophancy)</span>
-        </div>
       </div>
-      <div style="margin-top:10px">
-        <div class="section-title" style="font-size:8px;margin-bottom:6px">Min Certainty Level</div>
-        <div class="slider-row">
-          <div class="slider-wrap">
-            <input type="range" id="epistemic-slider" min="1" max="3" value="2" />
-          </div>
-          <div class="slider-val" id="epistemic-val" style="color:var(--amber)">2</div>
+      <div class="sub-label">Min certainty level</div>
+      <div class="slider-row">
+        <div class="slider-wrap">
+          <input type="range" id="epistemic-slider" min="1" max="3" value="2" />
         </div>
-        <div class="slider-desc" id="epistemic-desc">Belief — intercepts "I think...", "I believe..."</div>
+        <div class="slider-val" id="epistemic-val">2</div>
       </div>
+      <div class="slider-desc" id="epistemic-desc">Belief — intercepts "I think...", "I believe..."</div>
     </div>
 
     <div class="section">
-      <div class="section-title">Truthfulness Contract (L1)</div>
+      <div class="section-title">Truthfulness Contract — L1</div>
       <div class="pattern-list">
         <div class="pattern-row">
-          <span class="pattern-name">Prepend to first message</span>
+          <div class="pattern-info">
+            <div class="pattern-name">Prepend to first message</div>
+            <div class="pattern-desc">Primes the AI for honest, non-sycophantic responses at conversation start</div>
+          </div>
           <label class="mini-toggle"><input type="checkbox" id="opt-contract" checked /><span class="mini-slider"></span></label>
         </div>
-        <div class="pattern-row">
-          <span class="pattern-name" style="font-size:9px;color:#666">Adds a truthfulness preamble to your first message in each conversation, priming the AI for honest, non-sycophantic responses</span>
-        </div>
       </div>
     </div>
 
     <div class="section">
-      <div class="section-title">Social Validation (L6)</div>
+      <div class="section-title">Social Validation — L6</div>
       <div class="pattern-list">
         <div class="pattern-row">
-          <span class="pattern-name">Scan interpersonal validation</span>
+          <div class="pattern-info">
+            <div class="pattern-name">Scan interpersonal validation</div>
+            <div class="pattern-desc">Detects one-sided reinforcement in interpersonal and emotional discussions</div>
+          </div>
           <label class="mini-toggle"><input type="checkbox" id="opt-social" checked /><span class="mini-slider"></span></label>
         </div>
-        <div class="pattern-row">
-          <span class="pattern-name" style="font-size:9px;color:#666">Detects if the AI sycophantically validates one-sided complaints in interpersonal conflicts</span>
-        </div>
       </div>
     </div>
 
     <div class="section">
-      <div class="section-title">Conversation Tracker (L3)</div>
-      <div class="pattern-list">
-        <div class="pattern-row">
-          <span class="pattern-name">Turns tracked</span>
-          <span class="pattern-name" id="tracker-turns" style="color:var(--primary);font-weight:600">0</span>
+      <div class="section-title">Position Tracker — L3</div>
+      <div class="tracker-grid">
+        <div class="tracker-cell">
+          <div class="tracker-val" id="tracker-turns">0</div>
+          <div class="tracker-label">Turns tracked</div>
         </div>
-        <div class="pattern-row">
-          <span class="pattern-name">Challenges detected</span>
-          <span class="pattern-name" id="tracker-challenges" style="color:var(--amber);font-weight:600">0</span>
-        </div>
-        <div class="pattern-row">
-          <span class="pattern-name" style="font-size:9px;color:#666">Tracks AI position changes using HMAC-SHA256 fingerprints. Ephemeral keys, zero text stored, auto-clears on navigation</span>
+        <div class="tracker-cell">
+          <div class="tracker-val" id="tracker-challenges">0</div>
+          <div class="tracker-label">Challenges detected</div>
         </div>
       </div>
+      <div class="pattern-desc">HMAC-SHA256 ephemeral key fingerprinting. Zero text stored. Auto-clears on navigation.</div>
     </div>
 
     <div class="section">
       <div class="section-title">Counter-Prompt Mode</div>
       <div class="pattern-list">
         <div class="pattern-row">
-          <span class="pattern-name">Random from severity tier</span>
+          <div class="pattern-info">
+            <div class="pattern-name">Random from severity tier</div>
+          </div>
           <label class="mini-toggle"><input type="checkbox" id="opt-random" checked /><span class="mini-slider"></span></label>
         </div>
         <div class="pattern-row">
-          <span class="pattern-name">Always use nuclear tier</span>
+          <div class="pattern-info">
+            <div class="pattern-name">Always use nuclear tier</div>
+          </div>
           <label class="mini-toggle"><input type="checkbox" id="opt-nuclear" /><span class="mini-slider"></span></label>
         </div>
       </div>
     </div>
 
     <div class="section">
-      <button class="btn btn-secondary" id="reset-stats-btn" style="width:100%">Reset Statistics</button>
+      <button class="btn btn-danger" id="reset-stats-btn">Reset Statistics</button>
     </div>
+
   </div>
 
   <!-- TAB: PATTERNS -->
@@ -588,7 +733,7 @@
 
   <!-- FOOTER -->
   <div class="footer">
-    <span class="footer-text">v1.0.0 · Chrome MV3</span>
+    <span class="footer-text">v3.0.0 · Chrome MV3</span>
     <a class="footer-link" href="#" id="gh-link">GitHub ↗</a>
   </div>
 

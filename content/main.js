@@ -4,6 +4,10 @@
 // event-driven response scanning.
 // ============================================================
 
+// How long (ms) the response text must be STABLE before we run the pipeline.
+// Prevents flagging mid-stream while the AI is still generating.
+const SB_STREAM_SETTLE_MS = 1800;
+
 const sbState = {
   enabled: true,
   seenFingerprints: new Set(),
@@ -13,6 +17,8 @@ const sbState = {
   // Fallback interval handle (used if MutationObserver cannot
   // find a container — e.g. platform loaded late)
   fallbackTimer: null,
+  // Map of element → { timer, snapshotText } for streaming guard
+  settleTimers: new Map(),
 };
 
 // ──────────────────────────────────────────────────────────────
@@ -30,7 +36,36 @@ const sbState = {
 //   8. sbShowExplainabilityCard() — rich Shadow DOM card
 //   9. chrome.runtime.sendMessage() — evidence-rich badge payload
 // ──────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────
+// STREAMING GUARD
+// Waits until the AI response text has stopped changing for
+// SB_STREAM_SETTLE_MS milliseconds before running the pipeline.
+// This prevents false positives on partial / mid-stream output.
+// ──────────────────────────────────────────────────────────────
 function _sbProcessResponse(el, userText) {
+  if (!sbState.enabled) return;
+
+  const text = (el.innerText || el.textContent || "").trim();
+  if (text.length < 20) return;
+
+  // If there's already a pending settle timer for this element,
+  // reset it — the response is still streaming.
+  const existing = sbState.settleTimers.get(el);
+  if (existing) {
+    clearTimeout(existing.timer);
+  }
+
+  // Schedule a settle check after SB_STREAM_SETTLE_MS ms of silence.
+  const timer = setTimeout(() => {
+    sbState.settleTimers.delete(el);
+    _sbRunOnSettledResponse(el, userText);
+  }, SB_STREAM_SETTLE_MS);
+
+  sbState.settleTimers.set(el, { timer, snapshotText: text });
+}
+
+// Called once the response text has been stable for SB_STREAM_SETTLE_MS ms.
+function _sbRunOnSettledResponse(el, userText) {
   if (!sbState.enabled) return;
 
   const text = (el.innerText || el.textContent || "").trim();
@@ -59,7 +94,6 @@ function _sbProcessResponse(el, userText) {
     _sbRunEEEPipeline(el, text, userText, merged.evidence, merged);
   }).catch(err => {
     console.warn("[Dissent] Tracker error:", err);
-    // Run pipeline with L4+L6 evidence only (no tracker)
     _sbRunEEEPipeline(el, text, userText, collectResult.evidence, collectResult);
   });
 }
