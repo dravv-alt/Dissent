@@ -265,10 +265,21 @@ sbGetCounterPrompt(severity, sycophancyType)
 | Ye et al., 2026 (arXiv:2605.21778) | 2x2 Sycophancy Taxonomy structure. |
 
 ## Installation
-1. Clone this repository.
-2. Open Chrome and navigate to `chrome://extensions/`.
-3. Enable "Developer mode".
-4. Click "Load unpacked" and select the `sycophancybreaker(v2)` folder.
+
+**Option A — Clone via Git**
+```bash
+git clone https://github.com/dravv-alt/Dissent.git
+```
+1. Open Chrome and navigate to `chrome://extensions/`
+2. Enable **Developer mode** (toggle in the top-right corner)
+3. Click **Load unpacked** and select the cloned `Dissent` folder
+
+**Option B — Download ZIP**
+1. Click **Code → Download ZIP** on the [GitHub repository page](https://github.com/dravv-alt/Dissent)
+2. Extract the ZIP
+3. Open Chrome and navigate to `chrome://extensions/`
+4. Enable **Developer mode**
+5. Click **Load unpacked** and select the extracted `Dissent` folder
 
 ## Running Tests
 ```bash
