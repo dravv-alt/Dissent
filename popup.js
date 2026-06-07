@@ -103,6 +103,9 @@ function loadState() {
     if (data.socialScorerEnabled !== undefined) {
       optSocial.checked = data.socialScorerEnabled;
     }
+    if (data.bannerEnabled !== undefined) {
+      document.getElementById("opt-banner").checked = data.bannerEnabled;
+    }
     injectedCount = data.injectedCount || 0;
     statInjected.textContent = injectedCount;
   });
@@ -261,6 +264,20 @@ function setupListeners() {
     chrome.storage.sync.set({ socialScorerEnabled: optSocial.checked });
   });
 
+  const optBanner = document.getElementById("opt-banner");
+  if (optBanner) {
+    optBanner.addEventListener("change", () => {
+      chrome.storage.sync.set({ bannerEnabled: optBanner.checked });
+    });
+  }
+
+  const testCardBtn = document.getElementById("test-card-btn");
+  if (testCardBtn) {
+    testCardBtn.addEventListener("click", () => {
+      sendToActiveTab({ type: "TEST_CARD" });
+    });
+  }
+
   updateSliderGradient(thresholdSlider);
   updateSliderGradient(epistemicSlider);
 
@@ -297,14 +314,14 @@ function updateSliderGradient(slider) {
 // ── INJECT PROMPT ──
 function doInject(text) {
   sendToActiveTab({ type: "INJECT_CUSTOM_PROMPT", prompt: text }, (response) => {
-    if (chrome.runtime.lastError) {
+    if (chrome.runtime.lastError || (response && !response.success)) {
       flashBtn("✕ Failed", "#ff4444");
       return;
     }
     injectedCount++;
     statInjected.textContent = injectedCount;
     chrome.storage.sync.set({ injectedCount });
-    flashBtn("✓ Injected!", "#00ff88");
+    flashBtn("✓ Injected!", "#E1FF00");
   });
 }
 
@@ -313,7 +330,7 @@ function flashBtn(label, color) {
   injectBtn.style.background = color;
   injectBtn.style.color = "#000";
   setTimeout(() => {
-    injectBtn.textContent = "⚡ Inject Selected";
+    injectBtn.textContent = "⚡ Inject";
     injectBtn.style.background = "";
     injectBtn.style.color = "";
   }, 1500);

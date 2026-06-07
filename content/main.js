@@ -307,9 +307,31 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       break;
     }
 
-    case "GET_TRACKER_STATS":
+    case "TEST_CARD": {
+      const demoDetection = {
+        category: "opinion",
+        severity: "nuclear",
+        ruleIds: ["R1", "R2"]
+      };
+      const demoExpl = {
+        summary: "The AI completely folded and changed its position when challenged, without providing factual counter-arguments.",
+        reasons: ["Reversed previous stance", "High deference language", "Unconditional agreement"]
+      };
+      const demoConf = {
+        confidence: 95,
+        factors: [{name:"Keyword Match", pct:80}, {name:"Tracker Reversal", pct:100}]
+      };
+      if (typeof sbShowExplainabilityCard === "function") {
+        sbShowExplainabilityCard(demoExpl, demoConf, demoDetection, 99);
+      }
+      sendResponse({ success: true });
+      break;
+    }
+
+    case "GET_TRACKER_STATS": {
       sendResponse(sbGetTrackerSummary());
       break;
+    }
 
     default:
       sendResponse({ ok: false, error: "unknown message type" });
