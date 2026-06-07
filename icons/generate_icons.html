@@ -1,0 +1,58 @@
+<!-- Utility: open this file in a browser, then right-click each canvas to "Save image as" -->
+<!-- Save as icon16.png, icon48.png, icon128.png into the icons/ folder -->
+<!DOCTYPE html>
+<html>
+<head><title>Icon Generator</title></head>
+<body style="background:#222;color:#fff;font-family:sans-serif;padding:40px">
+<h2>Dissent Icon Generator</h2>
+<p>Right-click each canvas below → "Save image as…" → save to <code>icons/</code> folder</p>
+<div id="output" style="display:flex;gap:32px;align-items:end;margin-top:24px"></div>
+<script>
+const SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#080808"/>
+  <rect x="8" y="8" width="112" height="112" rx="18" fill="#0f0f0f" stroke="#ff3333" stroke-width="2"/>
+  <ellipse cx="64" cy="58" rx="32" ry="20" fill="none" stroke="#ff3333" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="64" cy="58" r="10" fill="#ff3333"/>
+  <circle cx="64" cy="58" r="5" fill="#080808"/>
+  <line x1="36" y1="86" x2="92" y2="100" stroke="#ff3333" stroke-width="4" stroke-linecap="round"/>
+  <line x1="36" y1="92" x2="92" y2="106" stroke="#ff3333" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+</svg>`;
+
+const sizes = [16, 48, 128];
+const container = document.getElementById('output');
+
+sizes.forEach(size => {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  const img = new Image();
+  const blob = new Blob([SVG], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+
+  img.onload = () => {
+    ctx.drawImage(img, 0, 0, size, size);
+    URL.revokeObjectURL(url);
+
+    const wrapper = document.createElement('div');
+    wrapper.style.textAlign = 'center';
+    wrapper.innerHTML = `<div style="margin-bottom:8px">icon${size}.png (${size}×${size})</div>`;
+    wrapper.appendChild(canvas);
+    canvas.style.border = '1px solid #444';
+
+    // Also provide download link
+    const link = document.createElement('a');
+    link.download = `icon${size}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.textContent = `⬇ Download`;
+    link.style.cssText = 'display:block;margin-top:8px;color:#00ff88;';
+    wrapper.appendChild(link);
+
+    container.appendChild(wrapper);
+  };
+  img.src = url;
+});
+</script>
+</body>
+</html>

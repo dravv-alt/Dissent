@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "Dissent — AI Behavioral Auditing",
+  "version": "3.0.0",
+  "description": "Five-layer AI sycophancy defense: truthfulness contracts, input rewriting, position tracking, response scanning, and advanced counter-prompts. Supports Claude, ChatGPT, and Gemini.",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": [
+    "https://claude.ai/*",
+    "https://chatgpt.com/*",
+    "https://gemini.google.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://claude.ai/*",
+        "https://chatgpt.com/*",
+        "https://gemini.google.com/*"
+      ],
+      "js": [
+        "content/constants.js",
+        "content/rules.js",
+        "content/platforms.js",
+        "content/contract.js",
+        "content/epistemic.js",
+        "content/tracker.js",
+        "content/detector.js",
+        "content/injector.js",
+        "content/interceptor.js",
+        "content/social.js",
+        "content/evidence.js",
+        "content/ui.js",
+        "content/main.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
