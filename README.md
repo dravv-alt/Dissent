@@ -165,23 +165,6 @@ Behavioral auditing should never require behavioral surveillance.
 
 ---
 
-## Relationship to Sanctuary
-
-Sanctuary and Dissent are complementary research efforts.
-
-### Sanctuary
-Focuses on Narrative Coherence.
-Helping people transform fragmented experiences into coherent self-understanding.
-
-### Dissent
-Focuses on Narrative Integrity.
-Helping people recognize when AI systems begin influencing that process through narrative reinforcement and sycophantic behavior.
-
-Together they explore two sides of the same question:
-> How do humans construct meaning, and how should AI participate in that process?
-
----
-
 ## Long-Term Vision
 
 The future challenge of AI is not simply generating information.
