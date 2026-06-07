@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+
+title: Dissent
+
+message: >
+  If you use Dissent in research,
+  publications, products, or derivative work,
+  please cite the original project.
+
+authors:
+  - family-names: "Jain"
+    given-names: "Dravvya"
+
+repository-code: "https://github.com/dravv-alt/Dissent"
+
+abstract: >
+  Dissent is the original open-source framework for detecting,
+  explaining, and counteracting AI sycophantic behavior through
+  transparent, evidence-based behavioral analysis. It operates
+  through a six-layer intervention pipeline including truthfulness
+  contracts, epistemic interception, position tracking, response
+  detection, counter-prompt intervention, and social validation
+  analysis — all with a strict zero-exfiltration privacy model.
+
+keywords:
+  - ai-safety
+  - sycophancy
+  - explainable-ai
+  - browser-extension
+  - llm
+  - behavioral-auditing
+  - chatgpt
+  - claude
+  - gemini
+
+license: Apache-2.0
+
+date-released: "2026-05-01"

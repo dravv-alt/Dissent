@@ -1,10 +1,21 @@
+# Dissent
+
+**Original Author:** Dravvya Jain
+
+Dissent is an open-source framework for detecting,
+explaining, and counteracting AI sycophantic behavior.
+
+Licensed under Apache License 2.0.
+
+---
+
 <p align="center">
   <img src="assets/banner.png" alt="DISSENT Logo">
 </p>
 
 ### Because Agreement Is Not Evidence.
 
-![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg) ![Manifest: V3](https://img.shields.io/badge/Manifest-V3-green.svg) ![Dependencies: Zero](https://img.shields.io/badge/Dependencies-Zero-success.svg) ![Research Backed](https://img.shields.io/badge/Research-5_Papers-purple.svg)
+![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg) ![Manifest: V3](https://img.shields.io/badge/Manifest-V3-green.svg) ![Dependencies: Zero](https://img.shields.io/badge/Dependencies-Zero-success.svg) ![Research Backed](https://img.shields.io/badge/Research-5_Papers-purple.svg)
 
 ---
 
@@ -268,6 +279,31 @@ node tests/test_rules.js
 ## Known Limitations
 - **Implicit Person:** Detecting tone softening requires a ground-truth comparison impossible under zero-exfiltration.
 - **DOM Fragility:** Selectors in `platforms.js` may break when Claude/ChatGPT update their UI.
+
+## Attribution
+
+Dissent is an open-source project. Contributions, forks, and derivative works are
+welcome under the terms of the [Apache License 2.0](LICENSE).
+
+- **This project is open source.** The source code is freely available and modifiable.
+- **Contributions are welcome.** See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+- **Derivative works are welcome.** You may build upon Dissent for any purpose,
+  including commercial use.
+- **Attribution to the original project is appreciated.** If you fork or build on
+  Dissent, please acknowledge the original project and author in your documentation.
+- **Academic and commercial users should cite Dissent where appropriate.**
+  Use [CITATION.cff](CITATION.cff) or the citation format below:
+
+```
+Jain, Dravvya. Dissent: An Open-Source Framework for Detecting,
+Explaining, and Counteracting AI Sycophantic Behavior. 2026.
+https://github.com/dravv-alt/Dissent
+```
+
+See [NOTICE](NOTICE) for full attribution requirements and [TRADEMARK.md](TRADEMARK.md)
+for project identity guidance.
+
+---
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md).
