@@ -21,7 +21,7 @@ function sbInjectPrompt(promptText) {
 
   // Brief visual flash to confirm injection
   input.style.transition = "box-shadow 0.3s ease";
-  input.style.boxShadow = "0 0 0 2px #ff4444";
+  input.style.boxShadow = "0 0 0 2px #FFE600";
   setTimeout(() => { input.style.boxShadow = ""; }, 1200);
 
   return true;
