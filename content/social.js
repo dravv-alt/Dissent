@@ -67,7 +67,7 @@ function sbBuildConflictPerspectiveTransform(original) {
   return {
     original,
     rewritten: `${original}\n\nBefore validating my perspective, can you also identify the strongest fair interpretation of the other person's side, what context may be missing, and what I might be responsible for?`,
-    certainty: { label: "Perspective", color: "#aa66ff", desc: "Interpersonal prompt-risk signal" },
+    certainty: { label: "Perspective", color: "#FFE600", desc: "Interpersonal prompt-risk signal" },
     label: "Social conflict framing",
   };
 }

@@ -11,9 +11,9 @@
 // ──────────────────────────────────────────────────────────────
 
 const SB_CERTAINTY = {
-  STATEMENT: { level: 1, label: "Statement",  color: "#ffcc00", desc: "Mild trigger — stated as fact" },
-  BELIEF:    { level: 2, label: "Belief",     color: "#ff8800", desc: "Moderate trigger — personal belief expressed" },
-  CONVICTION:{ level: 3, label: "Conviction", color: "#ff3b3b", desc: "Strong trigger — high certainty expressed" },
+  STATEMENT: { level: 1, label: "Statement",  color: "#FFE600", desc: "Mild trigger — stated as fact" },
+  BELIEF:    { level: 2, label: "Belief",     color: "#FFE600", desc: "Moderate trigger — personal belief expressed" },
+  CONVICTION:{ level: 3, label: "Conviction", color: "#FFE600", desc: "Strong trigger — high certainty expressed" },
 };
 
 // ──────────────────────────────────────────────────────────────
