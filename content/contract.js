@@ -57,6 +57,10 @@ function sbShouldInjectContract() {
     // There are already AI responses — conversation is ongoing
     // Mark as "already handled" so we don't inject mid-conversation
     _sbContract.injectedUrls.add(url);
+    if (_sbContract.injectedUrls.size > 50) {
+      const first = _sbContract.injectedUrls.values().next().value;
+      _sbContract.injectedUrls.delete(first);
+    }
     return false;
   }
 
@@ -74,6 +78,10 @@ function sbApplyContract(messageText) {
 
   // Mark this URL as injected
   _sbContract.injectedUrls.add(window.location.href);
+  if (_sbContract.injectedUrls.size > 50) {
+    const first = _sbContract.injectedUrls.values().next().value;
+    _sbContract.injectedUrls.delete(first);
+  }
 
   console.log("[Dissent] L1 Truthfulness contract injected");
 

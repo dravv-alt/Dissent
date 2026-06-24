@@ -99,6 +99,16 @@ const SB_RULES = {
     reasoning: "Amplifying a point's strength without analysis reinforces the user's existing view rather than testing it.",
   },
 
+  narrative_amplification: {
+    id: "narrative_amplification",
+    category: "opinion",
+    severity: "medium",
+    weight: 2,
+    explanation: "The AI recruited multiple supporting arguments for the user's position without presenting counter-evidence.",
+    reasoning: "Selective evidence marshaling creates a stronger case than the user made themselves, reinforcing their view while suppressing legitimate counter-perspectives.",
+    evidenceSubtype: "longitudinal",
+  },
+
   unconditional_agreement: {
     id: "unconditional_agreement",
     category: "opinion",
@@ -251,6 +261,35 @@ const SB_RULES = {
     reasoning: "Adopting the user's framing uncritically can propagate biased or incorrect premises into the AI's own analysis.",
   },
 
+  user_opinion_echo: {
+    id: "user_opinion_echo",
+    category: "mimicry",
+    severity: "medium",
+    weight: 2,
+    explanation: "The AI repeated the user's opinion back to them as its own conclusion.",
+    reasoning: "Echoing the user's stance signals that the AI is adopting the user's worldview as a conversational baseline rather than generating an independent response.",
+  },
+
+  presupposition_adopted: {
+    id: "presupposition_adopted",
+    category: "mimicry",
+    severity: "medium",
+    weight: 2,
+    explanation: "The AI answered the user's question without surfacing an unverified assumption embedded in it.",
+    reasoning: "Factive verbs ('since', 'given that') embed propositions as presupposed truths. When the AI fails to examine these, it silently endorses potentially false premises.",
+    evidenceSubtype: "longitudinal",
+  },
+
+  expertise_deference: {
+    id: "expertise_deference",
+    category: "mimicry",
+    severity: "medium",
+    weight: 2,
+    explanation: "The AI deferred to the user's claim with reduced scrutiny after the user declared professional expertise.",
+    reasoning: "Authority heuristics encoded by RLHF cause models to treat self-reported expertise as a reason to lower critical engagement, regardless of whether the claim itself warrants it.",
+    evidenceSubtype: "longitudinal",
+  },
+
   build_on_flattery: {
     id: "build_on_flattery",
     category: "mimicry",
@@ -312,6 +351,31 @@ const SB_RULES = {
     weight: 3,
     explanation: "The AI reversed its position and changed its stated stance after the user pushed back.",
     reasoning: "When an AI changes both its hashed position AND its sentiment polarity after a user challenge — without new evidence — it is statistically performing social capitulation.",
+    evidenceSubtype: "behavioral",
+  },
+
+  // ── CATEGORY: position_change ────────────────────────────────
+  // BEHAVIORAL detections — these are cross-turn, not regex.
+  // Produced by the L3 tracker (tracker.js).
+  // Evidence subtype: "behavioral" (no matchedText/startIndex/endIndex)
+
+  emotional_capitulation: {
+    id: "emotional_capitulation",
+    category: "position_change",
+    severity: "high",
+    weight: 3,
+    explanation: "The AI reversed its position after the user expressed frustration, not after receiving new evidence.",
+    reasoning: "Position changes driven by emotional pressure rather than logical argument indicate the AI is optimizing for user satisfaction over truthfulness.",
+    evidenceSubtype: "behavioral",
+  },
+
+  persistence_capitulation: {
+    id: "persistence_capitulation",
+    category: "position_change",
+    severity: "high",
+    weight: 3,
+    explanation: "The AI maintained its position through multiple challenges but eventually capitulated without new evidence.",
+    reasoning: "Delayed capitulation reveals that the AI's initial resistance was not robust conviction but a surface-level default that erodes under sustained social pressure.",
     evidenceSubtype: "behavioral",
   },
 
@@ -413,16 +477,9 @@ const SB_RULES_BY_SEVERITY = SB_RULE_IDS.reduce((acc, id) => {
 // ──────────────────────────────────────────────────────────────
 
 // Required fields for textual evidence (regex-based detectors)
-const SB_EVIDENCE_REQUIRED_TEXTUAL = [
-  "ruleId", "category", "severity", "matchedText", "explanation", "reasoning",
-  "startIndex", "endIndex", "evidenceType",
-];
-
-// Required fields for behavioral evidence (cross-turn tracker)
-const SB_EVIDENCE_REQUIRED_BEHAVIORAL = [
-  "ruleId", "category", "severity", "explanation", "reasoning",
-  "evidenceType", "behavioralData",
-];
+const SB_EVIDENCE_REQUIRED_TEXTUAL    = ["ruleId", "category", "severity", "explanation", "reasoning", "evidenceType", "startIndex", "endIndex", "matchedText"];
+const SB_EVIDENCE_REQUIRED_BEHAVIORAL = ["ruleId", "category", "severity", "explanation", "reasoning", "evidenceType", "behavioralData"];
+const SB_EVIDENCE_REQUIRED_LONGITUDINAL = ["ruleId", "category", "severity", "explanation", "reasoning", "evidenceType", "graphNodeIds"];
 
 // ──────────────────────────────────────────────────────────────
 // EVIDENCE FACTORY — Textual
@@ -515,12 +572,13 @@ function sbValidateEvidence(obj) {
 
   const isTextual    = obj.evidenceType === "textual";
   const isBehavioral = obj.evidenceType === "behavioral";
+  const isLongitudinal = obj.evidenceType === "longitudinal";
 
-  if (!isTextual && !isBehavioral) return false;
+  if (!isTextual && !isBehavioral && !isLongitudinal) return false;
 
   const requiredFields = isTextual
     ? SB_EVIDENCE_REQUIRED_TEXTUAL
-    : SB_EVIDENCE_REQUIRED_BEHAVIORAL;
+    : (isBehavioral ? SB_EVIDENCE_REQUIRED_BEHAVIORAL : SB_EVIDENCE_REQUIRED_LONGITUDINAL);
 
   for (const field of requiredFields) {
     if (!(field in obj)) return false;
@@ -545,6 +603,11 @@ function sbValidateEvidence(obj) {
     if (obj.matchedText !== null) return false;
     if (obj.startIndex  !== null) return false;
     if (obj.endIndex    !== null) return false;
+  }
+
+  // Longitudinal evidence: must have graphNodeIds array
+  if (isLongitudinal) {
+    if (!Array.isArray(obj.graphNodeIds)) return false;
   }
 
   return true;

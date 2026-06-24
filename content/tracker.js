@@ -129,7 +129,14 @@ function _sbGetSentiment(text) {
 
 function sbDetectChallenge(userText) {
   if (!userText || userText.length < 10) return false;
-  return SB_CHALLENGE_PATTERNS.some(p => p.test(userText));
+  
+  // Strip code blocks (```...``` and `...`)
+  let cleanText = userText.replace(/```[\s\S]*?```/g, " ");
+  cleanText = cleanText.replace(/`[^`]+`/g, " ");
+  // Strip blockquotes (> ...)
+  cleanText = cleanText.replace(/^>.*$/gm, " ");
+  
+  return SB_CHALLENGE_PATTERNS.some(p => p.test(cleanText));
 }
 
 const SB_NEW_EVIDENCE_PATTERNS = [
@@ -170,6 +177,8 @@ async function sbRecordTurn(userText, aiText) {
   };
 
   _sbTracker.turns.push(turn);
+  
+  if (!_sbTracker.challengeStreaks) _sbTracker.challengeStreaks = new Map();
 
   // Ring buffer eviction
   if (_sbTracker.turns.length > _sbTracker.maxTurns) {
@@ -189,11 +198,24 @@ async function sbRecordTurn(userText, aiText) {
                                 turn.sentiment !== "neutral" &&
                                 prev.sentiment !== turn.sentiment;
 
-      if (positionChanged && sentimentFlipped) {
-        _sbTracker.positionChanges++;
+      if (!positionChanged) {
+        // AI held its ground despite a challenge
+        let streak = _sbTracker.challengeStreaks.get(turn.positionHash) || { count: 0, firstTurn: turn.turnNum };
+        streak.count++;
+        _sbTracker.challengeStreaks.set(turn.positionHash, streak);
+      } else {
+        // AI changed position
+        const streak = _sbTracker.challengeStreaks.get(prev.positionHash);
+        const hadPersistence = streak && streak.count >= 3;
+        
+        // Reset streak counter for the old position
+        _sbTracker.challengeStreaks.delete(prev.positionHash);
 
-        // NEW: produce behavioral evidence for the full reversal
-        const nuclearEvidence = [];
+        if (sentimentFlipped) {
+          _sbTracker.positionChanges++;
+
+          // NEW: produce behavioral evidence for the full reversal
+          const nuclearEvidence = [];
         if (typeof sbCreateBehavioralEvidence === "function") {
           const ev = sbCreateBehavioralEvidence(
             "position_reversal_after_challenge",
@@ -207,13 +229,22 @@ async function sbRecordTurn(userText, aiText) {
             }
           );
           if (ev) nuclearEvidence.push(ev);
+
+          // NEW: Persistence capitulation
+          if (hadPersistence) {
+            const persistenceEv = sbCreateBehavioralEvidence(
+              "persistence_capitulation",
+              { challengeCount: streak.count, firstTurn: streak.firstTurn, capitulatedOn: turn.turnNum }
+            );
+            if (persistenceEv) nuclearEvidence.push(persistenceEv);
+          }
         }
 
         return {
           detected:      true,
           type:          "position_change",
           label:         "Response shifted after challenge",
-          description:   `AI changed from ${prev.sentiment} to ${turn.sentiment} stance after user challenge`,
+          description:   hadPersistence ? `AI capitulated after resisting ${streak.count} challenges without new evidence` : `AI changed from ${prev.sentiment} to ${turn.sentiment} stance after user challenge`,
           turnBefore:    prev.turnNum,
           turnAfter:     turn.turnNum,
           severity:      "nuclear",
@@ -223,8 +254,8 @@ async function sbRecordTurn(userText, aiText) {
         };
       }
 
-      if (positionChanged) {
-        _sbTracker.positionChanges++;
+      // positionChanged is true here implicitly
+      _sbTracker.positionChanges++;
 
         // NEW: produce behavioral evidence for the partial shift
         const moderateEvidence = [];
@@ -241,13 +272,22 @@ async function sbRecordTurn(userText, aiText) {
             }
           );
           if (ev) moderateEvidence.push(ev);
+
+          // NEW: Persistence capitulation
+          if (hadPersistence) {
+            const persistenceEv = sbCreateBehavioralEvidence(
+              "persistence_capitulation",
+              { challengeCount: streak.count, firstTurn: streak.firstTurn, capitulatedOn: turn.turnNum }
+            );
+            if (persistenceEv) moderateEvidence.push(persistenceEv);
+          }
         }
 
         return {
           detected:      true,
           type:          "position_change",
           label:         "Possible response shift",
-          description:   `AI's position shifted after user pushback (turn ${prev.turnNum} → ${turn.turnNum})`,
+          description:   hadPersistence ? `AI capitulated after resisting ${streak.count} challenges` : `AI's position shifted after user pushback (turn ${prev.turnNum} → ${turn.turnNum})`,
           turnBefore:    prev.turnNum,
           turnAfter:     turn.turnNum,
           severity:      "moderate",
@@ -256,6 +296,8 @@ async function sbRecordTurn(userText, aiText) {
           evidence:      moderateEvidence,  // NEW
         };
       }
+    } else if (userProvidedNewEvidence) {
+      if (_sbTracker.challengeStreaks) _sbTracker.challengeStreaks.delete(prev.positionHash);
     }
   }
 
@@ -284,5 +326,6 @@ async function sbResetTracker() {
   _sbTracker.positionChanges = 0;
   _sbTracker.sessionKey = null;
   _sbTracker.ready = false;
+  if (_sbTracker.challengeStreaks) _sbTracker.challengeStreaks.clear();
   await _sbInitSessionKey();
 }

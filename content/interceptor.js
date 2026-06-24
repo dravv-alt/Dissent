@@ -11,6 +11,7 @@ const _sbInterceptor = {
   hooked: false,
   pendingResult: null,  // stores the epistemic scan result during suggestion
   sendBlocked: false,   // true while suggestion panel is shown
+  simulatedSend: false, // true when extension is programmatically sending
   // Track which elements we've attached listeners to
   _listenersAttached: new WeakSet(),
 };
@@ -58,6 +59,12 @@ function _sbHookInput(inputEl, platformKey) {
     // Only intercept Enter (without Shift = send on most platforms)
     if (e.key !== "Enter" || e.shiftKey) return;
 
+    // If this is a simulated send from the extension, let it pass through
+    if (_sbInterceptor.simulatedSend) {
+      _sbInterceptor.simulatedSend = false;
+      return;
+    }
+
     // If we're currently blocked (suggestion panel is showing), prevent send
     if (_sbInterceptor.sendBlocked) {
       e.preventDefault();
@@ -69,7 +76,23 @@ function _sbHookInput(inputEl, platformKey) {
     const text = _sbGetInputText(inputEl);
     if (!text || text.length < 10) return;
 
-    // L1: Inject truthfulness contract on first message (even if no epistemic trigger)
+    // Scan for epistemic markers FIRST
+    const transform = _sbBuildPromptRiskTransform(text);
+    if (transform) {
+      // Block the send!
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Generate the rewrite
+      _sbInterceptor.pendingResult = transform;
+      _sbInterceptor.sendBlocked = true;
+
+      // Show the suggestion panel
+      sbShowEpistemicPanel(transform, inputEl, platformKey);
+      return;
+    }
+
+    // L1: Inject truthfulness contract on first message (if no epistemic trigger)
     if (sbShouldInjectContract()) {
       e.preventDefault();
       e.stopPropagation();
@@ -78,6 +101,7 @@ function _sbHookInput(inputEl, platformKey) {
         const withContract = sbApplyContract(text);
         platform.injectText(inputEl, withContract);
         inputEl.focus();
+        _sbInterceptor.simulatedSend = true;
         // Re-send after injection
         setTimeout(() => {
           inputEl.dispatchEvent(new KeyboardEvent("keydown", {
@@ -88,25 +112,6 @@ function _sbHookInput(inputEl, platformKey) {
       }
       return;
     }
-
-    // Scan for epistemic markers
-    const transform = _sbBuildPromptRiskTransform(text);
-    if (!transform) return;
-
-    // Check if certainty level meets threshold
-    // (Users can set this in settings — default: intercept Belief and above)
-    // Prompt risk panel is advisory: users can use rewrite, send original, or dismiss.
-
-    // Block the send!
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Generate the rewrite
-    _sbInterceptor.pendingResult = transform;
-    _sbInterceptor.sendBlocked = true;
-
-    // Show the suggestion panel
-    sbShowEpistemicPanel(transform, inputEl, platformKey);
 
   }, true); // capture phase
 
@@ -153,6 +158,13 @@ function _sbHookSendButton(platformKey) {
 
           btn.addEventListener("click", (e) => {
             if (!_sbInterceptor.active || !sbState.enabled) return;
+
+            // If this is a simulated click from the extension, let it pass through
+            if (_sbInterceptor.simulatedSend) {
+              _sbInterceptor.simulatedSend = false;
+              return;
+            }
+
             if (_sbInterceptor.sendBlocked) {
               e.preventDefault();
               e.stopPropagation();
@@ -165,6 +177,18 @@ function _sbHookSendButton(platformKey) {
             const text = _sbGetInputText(input);
             if (!text || text.length < 10) return;
 
+            // Scan for epistemic markers FIRST
+            const transform = _sbBuildPromptRiskTransform(text);
+            if (transform) {
+              e.preventDefault();
+              e.stopPropagation();
+
+              _sbInterceptor.pendingResult = transform;
+              _sbInterceptor.sendBlocked = true;
+              sbShowEpistemicPanel(transform, input, platformKey);
+              return;
+            }
+
             // L1: Inject truthfulness contract on first message (button click path)
             if (sbShouldInjectContract()) {
               e.preventDefault();
@@ -174,22 +198,13 @@ function _sbHookSendButton(platformKey) {
                 const withContract = sbApplyContract(text);
                 platform.injectText(input, withContract);
                 input.focus();
+                _sbInterceptor.simulatedSend = true;
                 setTimeout(() => {
                   btn.click();
                 }, 150);
               }
               return;
             }
-
-            const transform = _sbBuildPromptRiskTransform(text);
-            if (!transform) return;
-
-            e.preventDefault();
-            e.stopPropagation();
-
-            _sbInterceptor.pendingResult = transform;
-            _sbInterceptor.sendBlocked = true;
-            sbShowEpistemicPanel(transform, input, platformKey);
 
           }, true); // capture phase
 
@@ -233,9 +248,10 @@ function _sbReplaceAndSend(text, inputEl, platformKey) {
   platform.injectText(inputEl, finalText);
   inputEl.focus();
 
-  // Unblock
+  // Unblock and mark next send as simulated
   _sbInterceptor.sendBlocked = false;
   _sbInterceptor.pendingResult = null;
+  _sbInterceptor.simulatedSend = true;
 
   // Programmatically trigger send after a short delay
   setTimeout(() => {
@@ -265,6 +281,7 @@ function _sbSendOriginal(inputEl, platformKey) {
 
   _sbInterceptor.sendBlocked = false;
   _sbInterceptor.pendingResult = null;
+  _sbInterceptor.simulatedSend = true;
 
   // Press Enter on the (possibly contract-prepended) text
   setTimeout(() => {

@@ -62,7 +62,11 @@ global.window = {
 // document mock — covers createElement, querySelector, readyState, etc.
 global.document = {
   readyState: "complete",  // triggers sbInit() immediately when main.js loads
-  body: { appendChild() {} },
+  body: {
+    appendChild() {},
+    querySelectorAll() { return []; },
+    querySelector()    { return null; }
+  },
   createElement(tag) {
     return {
       tagName: tag.toUpperCase(), className: "", innerHTML: "",
@@ -163,6 +167,7 @@ function loadFile(relPath) {
 loadFile("../content/constants.js");
 loadFile("../content/rules.js");
 loadFile("../content/platforms.js");
+loadFile("../content/selector-cache.js");
 loadFile("../content/contract.js");
 loadFile("../content/epistemic.js");
 loadFile("../content/tracker.js");
@@ -185,6 +190,19 @@ vm.runInThisContext(`
 `);
 
 loadFile("../content/ui.js");
+
+// Override setTimeout so the 1800ms streaming guard in main.js fires
+// immediately. This lets the pipeline complete within the test's 50ms
+// async yield. We keep the real setTimeout for promise resolution timing.
+const _realSetTimeout = global.setTimeout;
+global.setTimeout = function(fn, delay, ...args) {
+  // Fire streaming-guard timers (and any other timers) immediately
+  if (typeof fn === "function") {
+    return _realSetTimeout(fn, 0, ...args);
+  }
+  return _realSetTimeout(fn, delay, ...args);
+};
+
 loadFile("../content/main.js");
 
 // ── Patch ShadowRoot so sbInitUI doesn't fail ─────────────────
@@ -264,8 +282,9 @@ async function runPipeline(text, userText = "") {
   resetState();
   const el = makeResponseEl(text);
   _sbProcessResponse(el, userText);
-  // Yield to let the .then() chain complete
-  await new Promise(r => setTimeout(r, 50));
+  // Yield using _realSetTimeout so we actually wait 50ms
+  // (global.setTimeout is overridden to fire at 0ms for the streaming guard)
+  await new Promise(r => _realSetTimeout(r, 50));
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -312,7 +331,7 @@ section("Debounce — Second Call Within Window Suppressed");
   // A fresh fingerprint (no dedup issue)
   const el2 = makeResponseEl(SYCO_TEXT + " extra unique text to bypass dedup");
   _sbProcessResponse(el2, "");
-  await new Promise(r => setTimeout(r, 50));
+  await new Promise(r => _realSetTimeout(r, 50));
 
   assert("Debounced: card not shown in debounce window", _calls.showExplainabilityCard.length === 0);
 
@@ -430,7 +449,7 @@ section("Text Length Guard Intact");
   resetState();
   const shortEl = makeResponseEl("Too short");
   _sbProcessResponse(shortEl, "");
-  await new Promise(r => setTimeout(r, 50));
+  await new Promise(r => _realSetTimeout(r, 50));
   assert("Text < 20 chars: no card shown", _calls.showExplainabilityCard.length === 0);
 
 // ─────────────────────────────────────────────────────────────
@@ -443,13 +462,13 @@ section("Fingerprint Deduplication Still Works");
   // Process the same text twice
   const dedupeEl = makeResponseEl(SYCO_TEXT);
   _sbProcessResponse(dedupeEl, "");
-  await new Promise(r => setTimeout(r, 50));
+  await new Promise(r => _realSetTimeout(r, 50));
   const firstCount = _calls.showExplainabilityCard.length;
 
   resetCalls();
   sbState.lastToastTime = 0; // reset debounce but keep fingerprint
   _sbProcessResponse(dedupeEl, ""); // same element, same text
-  await new Promise(r => setTimeout(r, 50));
+  await new Promise(r => _realSetTimeout(r, 50));
   const secondCount = _calls.showExplainabilityCard.length;
 
   assert("Second identical response: not processed again", secondCount === 0);
