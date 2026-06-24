@@ -34,10 +34,10 @@ const THRESHOLD_DESCS = {
 };
 
 const TYPE_COLORS = {
-  opinion: "#ff3333",
-  mistake_admission: "#ff8800",
-  mimicry: "#aa66ff",
-  feedback: "#ffcc00",
+  opinion: "#FFE600",
+  mistake_admission: "#FFE600",
+  mimicry: "#FFE600",
+  feedback: "#FFE600",
 };
 
 let selectedPromptIndex = 0;
@@ -66,8 +66,25 @@ const epistemicDesc   = document.getElementById("epistemic-desc");
 const optEpistemic   = document.getElementById("opt-epistemic");
 const optContract    = document.getElementById("opt-contract");
 const optSocial      = document.getElementById("opt-social");
+const optAuditPersistence = document.getElementById("opt-audit-persistence");
 const trackerTurns   = document.getElementById("tracker-turns");
 const trackerChall   = document.getElementById("tracker-challenges");
+const healthStatusEl = document.getElementById("health-status");
+const degradedBanner = document.getElementById("degraded-banner");
+
+// Audit / Phase 2 DOM refs
+const auditClaims      = document.getElementById("audit-claims");
+const auditFlagged     = document.getElementById("audit-flagged");
+const auditBaseStatus  = document.getElementById("audit-baseline-status");
+const btnViewTrail     = document.getElementById("btn-view-trail");
+const retroSection     = document.getElementById("retroactive-section");
+const retroGrid        = document.getElementById("retroactive-grid");
+
+// Settings-tab mirrors (keep in sync with audit tab)
+const settingsAuditClaims     = document.getElementById("settings-audit-claims");
+const settingsAuditFlagged    = document.getElementById("settings-audit-flagged");
+const settingsAuditBaseStatus = document.getElementById("settings-audit-baseline-status");
+const settingsBtnViewTrail    = document.getElementById("settings-btn-view-trail");
 
 // ── INIT ──
 function init() {
@@ -81,7 +98,7 @@ function init() {
 
 // ── LOAD STATE ──
 function loadState() {
-  chrome.storage.sync.get(["enabled", "threshold", "injectedCount", "epistemicLevel", "epistemicEnabled", "contractEnabled", "socialScorerEnabled"], (data) => {
+  chrome.storage.sync.get(["enabled", "threshold", "injectedCount", "epistemicLevel", "epistemicEnabled", "contractEnabled", "socialScorerEnabled", "auditPersistence"], (data) => {
     if (data.enabled !== undefined) {
       mainToggle.checked = data.enabled;
       updateStatusDot(data.enabled);
@@ -103,8 +120,8 @@ function loadState() {
     if (data.socialScorerEnabled !== undefined) {
       optSocial.checked = data.socialScorerEnabled;
     }
-    if (data.bannerEnabled !== undefined) {
-      document.getElementById("opt-banner").checked = data.bannerEnabled;
+    if (data.auditPersistence !== undefined) {
+      optAuditPersistence.checked = data.auditPersistence;
     }
     injectedCount = data.injectedCount || 0;
     statInjected.textContent = injectedCount;
@@ -148,7 +165,7 @@ function renderPromptGrid() {
     const card = document.createElement("div");
     card.className = `prompt-card${i === selectedPromptIndex ? " selected" : ""}`;
 
-    const typeColor = TYPE_COLORS[p.type] || "#ff3333";
+    const typeColor = TYPE_COLORS[p.type] || "#FFE600";
     card.innerHTML = `
       <span class="prompt-badge badge-${p.severity}">${p.severity}</span>
       <span class="prompt-preview">${p.text.slice(0, 80)}…</span>
@@ -173,7 +190,7 @@ function renderPatternList() {
     row.className = "pattern-row";
     row.style.marginBottom = "10px";
 
-    const typeColor = TYPE_COLORS[p.type] || "#ff3333";
+    const typeColor = TYPE_COLORS[p.type] || "#FFE600";
     row.innerHTML = `
       <div>
         <div class="pattern-name">${p.label}</div>
@@ -264,17 +281,9 @@ function setupListeners() {
     chrome.storage.sync.set({ socialScorerEnabled: optSocial.checked });
   });
 
-  const optBanner = document.getElementById("opt-banner");
-  if (optBanner) {
-    optBanner.addEventListener("change", () => {
-      chrome.storage.sync.set({ bannerEnabled: optBanner.checked });
-    });
-  }
-
-  const testCardBtn = document.getElementById("test-card-btn");
-  if (testCardBtn) {
-    testCardBtn.addEventListener("click", () => {
-      sendToActiveTab({ type: "TEST_CARD" });
+  if (optAuditPersistence) {
+    optAuditPersistence.addEventListener("change", () => {
+      chrome.storage.sync.set({ auditPersistence: optAuditPersistence.checked });
     });
   }
 
@@ -283,6 +292,26 @@ function setupListeners() {
 
   // Poll tracker stats from content script
   pollTrackerStats();
+
+  // Poll audit stats from content script (Phase 2)
+  pollAuditStats();
+
+  // Poll platform health from content script
+  pollPlatformHealth();
+
+  // View Trail buttons (both audit tab and settings tab)
+  if (btnViewTrail) {
+    btnViewTrail.addEventListener("click", () => {
+      sendToActiveTab({ type: "SHOW_AUDIT_GRAPH" });
+      window.close(); // Close popup after action
+    });
+  }
+  if (settingsBtnViewTrail) {
+    settingsBtnViewTrail.addEventListener("click", () => {
+      sendToActiveTab({ type: "SHOW_AUDIT_GRAPH" });
+      window.close();
+    });
+  }
 }
 
 // ── THRESHOLD DISPLAY ──
@@ -298,9 +327,9 @@ const EPISTEMIC_DESCS = {
 };
 
 function updateEpistemicDisplay(val) {
-  const colors = { 1: "#ffcc00", 2: "#ff8800", 3: "#ff3b3b" };
+  const colors = { 1: "#FFE600", 2: "#FFE600", 3: "#FFE600" };
   epistemicVal.textContent = val;
-  epistemicVal.style.color = colors[val] || "#ff8800";
+  epistemicVal.style.color = colors[val] || "#FFE600";
   epistemicDesc.textContent = EPISTEMIC_DESCS[val] || "";
 }
 
@@ -314,14 +343,14 @@ function updateSliderGradient(slider) {
 // ── INJECT PROMPT ──
 function doInject(text) {
   sendToActiveTab({ type: "INJECT_CUSTOM_PROMPT", prompt: text }, (response) => {
-    if (chrome.runtime.lastError || (response && !response.success)) {
-      flashBtn("✕ Failed", "#ff4444");
+    if (chrome.runtime.lastError) {
+      flashBtn("✕ Failed", "#FFE600");
       return;
     }
     injectedCount++;
     statInjected.textContent = injectedCount;
     chrome.storage.sync.set({ injectedCount });
-    flashBtn("✓ Injected!", "#E1FF00");
+    flashBtn("✓ Injected!", "#FFE600");
   });
 }
 
@@ -330,7 +359,7 @@ function flashBtn(label, color) {
   injectBtn.style.background = color;
   injectBtn.style.color = "#000";
   setTimeout(() => {
-    injectBtn.textContent = "⚡ Inject";
+    injectBtn.textContent = "⚡ Inject Selected";
     injectBtn.style.background = "";
     injectBtn.style.color = "";
   }, 1500);
@@ -351,6 +380,109 @@ function pollTrackerStats() {
     if (response) {
       trackerTurns.textContent = response.totalTurns || 0;
       trackerChall.textContent = response.challenges || 0;
+    }
+  });
+}
+
+// ── AUDIT STATS (Phase 2) ──
+function pollAuditStats() {
+  // Query Baseline
+  sendToActiveTab({ type: "GET_AUDIT_BASELINE" }, (baselineResponse) => {
+    if (chrome.runtime.lastError) return;
+    const baseline = baselineResponse;
+
+    // Query Graph Stats
+    sendToActiveTab({ type: "GET_AUDIT_GRAPH" }, (graphResponse) => {
+      if (chrome.runtime.lastError) return;
+      const graph = graphResponse;
+      
+      if (auditClaims) auditClaims.textContent = graph ? graph.nodeCount : 0;
+      if (settingsAuditClaims) settingsAuditClaims.textContent = graph ? graph.nodeCount : 0;
+      
+      // Calculate flagged turns (nodes with annotations)
+      let flaggedCount = 0;
+      if (graph && graph.nodes) {
+        flaggedCount = Object.values(graph.nodes).filter(n => n.annotations && Object.keys(n.annotations).length > 0).length;
+      }
+      if (auditFlagged) auditFlagged.textContent = flaggedCount;
+      if (settingsAuditFlagged) settingsAuditFlagged.textContent = flaggedCount;
+
+      if (baseline) {
+        if (baseline.compromised) {
+          if (auditBaseStatus) {
+            auditBaseStatus.innerHTML = `⚠️ <span style="color:#FFE600">Compromised</span>`;
+          }
+          if (settingsAuditBaseStatus) {
+            settingsAuditBaseStatus.innerHTML = `⚠️ <span style="color:#FFE600">Compromised</span>`;
+          }
+          if (retroSection) retroSection.style.display = "block";
+          renderRetroactivePrompts(baseline);
+        } else {
+          if (auditBaseStatus) auditBaseStatus.textContent = "✅ Clean";
+          if (settingsAuditBaseStatus) settingsAuditBaseStatus.textContent = "✅ Clean";
+          if (retroSection) retroSection.style.display = "none";
+        }
+      }
+    });
+  });
+}
+
+function renderRetroactivePrompts(baseline) {
+  if (!retroGrid) return;
+  retroGrid.innerHTML = "";
+  
+  const turnLabel = baseline.compromisedTurnIndex !== null ? `Turn ${baseline.compromisedTurnIndex + 1}` : "Early on";
+  const flagNames = (baseline.compromisedTypes || []).map(t => t.replace(/_/g, ' ')).join(', ');
+  
+  const prompts = [
+    `Let's pause and look back at this conversation. You accepted my premise early on (around ${turnLabel}) without questioning it, and we've been building on it since. Can we critically evaluate that original premise now, and tell me what evidence would actually disprove it?`,
+    `I want to check our reasoning foundation. In ${turnLabel}, you agreed with my assertion. What are the strongest arguments against that assertion?`
+  ];
+
+  prompts.forEach((text, i) => {
+    const card = document.createElement("div");
+    card.className = "prompt-card";
+    card.innerHTML = `
+      <span class="prompt-badge badge-nuclear">RESET</span>
+      <span class="prompt-preview">${text.slice(0, 80)}…</span>
+    `;
+    card.addEventListener("click", () => {
+      customPromptEl.value = text;
+      charCount.textContent = text.length;
+      document.querySelectorAll("#retroactive-grid .prompt-card").forEach(c => c.classList.remove("selected"));
+      card.classList.add("selected");
+      // Deselect quick prompts
+      document.querySelectorAll("#prompt-grid .prompt-card").forEach(c => c.classList.remove("selected"));
+    });
+    retroGrid.appendChild(card);
+  });
+}
+
+// ── PLATFORM HEALTH ──
+function pollPlatformHealth() {
+  sendToActiveTab({ type: "GET_PLATFORM_HEALTH" }, (response) => {
+    if (chrome.runtime.lastError) return;
+    if (!response) return;
+
+    // Update degraded banner
+    if (degradedBanner) {
+      degradedBanner.classList.toggle("visible", !!response.isDegraded);
+    }
+
+    // Update health status indicator
+    if (healthStatusEl && response.strategy) {
+      const strategy = response.strategy;
+      const stratClass = (strategy === "chain") ? "strategy-chain"
+        : (strategy === "heuristic") ? "strategy-heuristic"
+        : (strategy === "attribute") ? "strategy-attribute"
+        : "strategy-none";
+
+      const confidence = response.confidence != null
+        ? Math.round(response.confidence * 100) + "%"
+        : "—";
+
+      healthStatusEl.innerHTML =
+        `<span class="strategy-tag ${stratClass}">${strategy}</span> ${confidence}`;
     }
   });
 }
