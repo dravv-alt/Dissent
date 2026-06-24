@@ -19,6 +19,18 @@ const SB_CONFIG = {
   randomPrompts: true,
   strictChallengeMode: false,
   socialScorerEnabled: true,
+  auditPersistence: false,
+  
+  // Phase 4 Quantitative Thresholds
+  DRIFT_CONVERGENCE_THRESHOLD: 0.15,
+  DRIFT_VELOCITY_THRESHOLD: 0.08,
+  MARTINGALE_SLOPE_THRESHOLD: 0.30,
+  MARTINGALE_R2_THRESHOLD: 0.40,
+  
+  // Storage and Extraction Limits
+  MAX_CLAIMS_PER_TURN: 12,
+  MAX_GRAPH_NODES: 200,
+  MAX_LEDGER_EVENTS: 500,
 };
 
 const SB_SYNC_DEFAULTS = {
@@ -34,6 +46,7 @@ const SB_SYNC_DEFAULTS = {
   randomPrompts: true,
   strictChallengeMode: false,
   socialScorerEnabled: true,
+  auditPersistence: false,
   injectedCount: 0,
   sessionCount: 0,
 };

@@ -4,7 +4,7 @@
 The 10-component Explainability Evidence Engine replaces raw scoring with structured evidence tracking.
 
 ## 2. Content Script Load Order
-`rules.js → constants.js → platforms.js → contract.js → epistemic.js → tracker.js → detector.js → social.js → evidence.js → injector.js → interceptor.js → ui.js → main.js`
+`rules.js → constants.js → platforms.js → selector-cache.js → contract.js → epistemic.js → tracker.js → detector.js → social.js → evidence.js → injector.js → interceptor.js → ui.js → main.js`
 Strict sequential loading is required because there is no bundler.
 
 ## 3. Module Responsibilities
@@ -15,11 +15,12 @@ Strict sequential loading is required because there is no bundler.
 - `social.js` (L6): Heuristic social validation detection.
 - `epistemic.js` (L2): Scanner for certainty tier language.
 - `contract.js` (L1): Pre-conversation truthfulness framing.
+- `platforms.js`: 3-tier selector resolution engine (CSS chains → heuristic probing → attribute matching). Provides `sbResolve*` and backward-compatible `sbQuery*` APIs.
+- `selector-cache.js`: Self-healing selector cache with TTL, lazy DOM retries, and SPA navigation invalidation.
 - `injector.js`: DOM prompt injection.
 - `interceptor.js`: Pre-send event hooks.
-- `platforms.js`: DOM selector configuration.
 - `ui.js`: Shadow DOM Explainability Card and `sbHighlightEvidence`.
-- `main.js`: Orchestration via `_sbRunEEEPipeline()`.
+- `main.js`: Orchestration via `_sbRunEEEPipeline()` + platform health monitor.
 
 ## 4. Evidence Object Schemas
 **Textual:** `{ ruleId, category, severity, weight, matchedText, startIndex, endIndex, explanation, reasoning, evidenceType: "textual" }`
